@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from .masked_encoder import MaskedEncoder  # 你提供的masked_encoder.py
-from .patch_masking import PatchMasking
+from .utils.VisionTransformer import VisionTransformer
+
 
 class StateEncoder(nn.Module):
     """
@@ -16,7 +16,7 @@ class StateEncoder(nn.Module):
                  depth=4, num_heads=4):
         super().__init__()
         # 视觉编码器（你的MaskedEncoder，训练时禁用masking）
-        self.vision_encoder = MaskedEncoder(
+        self.vision_encoder = VisionTransformer(
             img_size=(vision_h, vision_w),
             patch_size=8,
             in_chans=vision_c,

@@ -4,15 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00197b2f-0eec-4850-b393-2f3fdb099907" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/pythonProject.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/models/encoder.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/models/predictor.py" afterDir="false" />
+    <list default="true" id="875979bd-eba7-49ad-bf98-817d965bfd2d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/networks/utils/VisionTransformer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/networks/masked_encoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/networks/masked_encoder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/networks/state_encoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/networks/state_encoder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/networks/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/networks/utils/sigreg.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/networks/utils/Transformer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/networks/utils/pos_embed.py" beforeDir="false" afterPath="$PROJECT_DIR$/networks/utils/pos_embed.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_stage1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_stage2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_stage3.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/trainers/stage2_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainers/stage2_trainer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,28 +33,39 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
   "associatedIndex": 4
 }]]></component>
-  <component name="ProjectId" id="3E2mGXXWkNkcRpTrQjdTBD2C3cG" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectId" id="3EF7C4ZdDeBWHwucovc7VMagT9P" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Documents/2026_first_half/JEPA/GenSim-JEPA",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "configurable.group.project",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Documents\2026_first_half\JEPA\GenSim-JEPA\networks\utils" />
+      <recent name="C:\Documents\2026_first_half\JEPA\GenSim-JEPA\networks" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -62,16 +76,19 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="00197b2f-0eec-4850-b393-2f3fdb099907" name="Changes" comment="" />
-      <created>1779384943326</created>
+      <changelist id="875979bd-eba7-49ad-bf98-817d965bfd2d" name="Changes" comment="" />
+      <created>1779762335531</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1779384943326</updated>
-      <workItem from="1779384950073" duration="4330000" />
+      <updated>1779762335531</updated>
+      <workItem from="1779762336866" duration="84276000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
 </project>
