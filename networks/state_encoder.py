@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .utils.VisionTransformer import VisionTransformer
+from .utils.vision_transformer import VisionTransformer
 
 
 class StateEncoder(nn.Module):
