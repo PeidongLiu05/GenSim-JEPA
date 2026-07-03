@@ -4,6 +4,7 @@ from networks.utils.sigreg import SIGReg
 
 class Stage2Trainer:
     def __init__(self, config, state_encoder, action_encoder, predictor, lewm_buffer):
+        self.config = config
         self.state_encoder = state_encoder
         self.action_encoder = action_encoder
         self.predictor = predictor
@@ -29,7 +30,22 @@ class Stage2Trainer:
         self.optimizer.step()
         return pred_loss.item(), sig_loss.item()
 
+    def load_checkpoint(self, path_prefix='./checkpoints'):
+        """从 stage2_*.pth 文件加载网络权重。"""
+        import torch
+        from pathlib import Path
+        sd = Path(path_prefix)
+        enc_path = sd / 'stage2_state_encoder.pth'
+        pred_path = sd / 'stage2_predictor.pth'
+        self.state_encoder.load_state_dict(torch.load(enc_path, map_location=self.config.device, weights_only=True))
+        self.predictor.load_state_dict(torch.load(pred_path, map_location=self.config.device, weights_only=True))
+        print(f"[resume] 从 {enc_path}, {pred_path} 加载成功")
+
     def train(self, epochs):
-        for epoch in range(epochs):
             loss_pred, loss_sig = self.train_step()
+            if epoch % 100 == 0:
+                save_dir = Path(self.config.save_dir)
+                save_dir.mkdir(parents=True, exist_ok=True)
+                torch.save(self.state_encoder.state_dict(), save_dir / 'stage2_state_encoder.pth')
+                torch.save(self.predictor.state_dict(), save_dir / 'stage2_predictor.pth')
             print(f"Epoch {epoch}, Pred Loss: {loss_pred:.4f}, SIGReg Loss: {loss_sig:.4f}")

@@ -98,6 +98,31 @@ class Stage3Trainer:
             lr=config.lr_aux
         )
 
+    def load_checkpoint(self, path, resume_ep=0):
+        """从 stage3_ep*.pt 加载网络权重和优化器状态。返回续接起始 ep。"""
+        ckpt = torch.load(path, map_location=self.device, weights_only=True)
+        self.state_encoder.load_state_dict(ckpt['state_encoder'])
+        self.state_encoder.eval()
+        self.low_actor.load_state_dict(ckpt['low_actor'])
+        self.action_decoder.load_state_dict(ckpt['action_decoder'])
+        self.goal_encoder.load_state_dict(ckpt['goal_encoder'])
+        self.subgoal_encoder.load_state_dict(ckpt['subgoal_encoder'])
+        self.high_actor.load_state_dict(ckpt['high_actor'])
+        self.gia.load_state_dict(ckpt['gia'])
+        self.termination_critic.load_state_dict(ckpt['termination_critic'])
+        if 'optimizer_state' in ckpt:
+            opt = ckpt['optimizer_state']
+            self.low_actor_opt.load_state_dict(opt['low_actor'])
+            self.low_critic_1_opt.load_state_dict(opt['low_critic_1'])
+            self.low_critic_2_opt.load_state_dict(opt['low_critic_2'])
+            self.high_actor_opt.load_state_dict(opt['high_actor'])
+            self.high_critic1_opt.load_state_dict(opt['high_critic_1'])
+            self.high_critic2_opt.load_state_dict(opt['high_critic_2'])
+            self.aux_opt.load_state_dict(opt['aux'])
+        start_ep = resume_ep if resume_ep > 0 else ckpt.get('ep', 0)
+        print(f"[resume] 从 {path} 加载成功，续接 ep={start_ep}")
+        return start_ep
+
         # 超参数
         self.gamma = config.gamma
         self.tau = config.tau
@@ -113,7 +138,6 @@ class Stage3Trainer:
 
         # GIA 自监督参数
         self.gia_rollout_horizon = config.gia_rollout_horizon
-        self.max_duration_scale = config.max_duration_scale
 
     # ------------------- 辅助函数 -------------------
     def _calc_low_target(self, rewards, z_next, g_target, dones):
@@ -175,7 +199,7 @@ class Stage3Trainer:
         z_next = z_next.to(self.device)
         done = done.to(self.device)
 
-        # ----- 更新 Q 网络 -----
+        # ----- 更新 Q 网络（critic 接收隐动作） -----
         td_target = self._calc_low_target(r, z_next, g_target, done)
         q1 = self.low_critic_1(z, g_target, a)
         q2 = self.low_critic_2(z, g_target, a)
@@ -313,8 +337,8 @@ class Stage3Trainer:
                                    sensor.unsqueeze(0).to(self.device),
                                    vision.unsqueeze(0).to(self.device)).squeeze(0)
 
-        goal_state = self.env.get_goal_state()   # 需实现
-        z_goal = self.goal_encoder(goal_state.unsqueeze(0).to(self.device)).squeeze(0)
+        goal_state = torch.from_numpy(self.env.get_goal_state()).float().to(self.device)
+        z_goal = self.goal_encoder(goal_state.unsqueeze(0)).squeeze(0)
 
         g = self.high_actor(z.unsqueeze(0), z_goal.unsqueeze(0)).squeeze(0)
         g_target = self.subgoal_encoder(g.unsqueeze(0)).squeeze(0)
@@ -332,14 +356,10 @@ class Stage3Trainer:
                 # 低层动作
                 dist = self.low_actor(z.unsqueeze(0), g_target.unsqueeze(0))
                 a_prim = dist.sample().squeeze(0)
-                a_phys, duration = self.action_decoder(a_prim.unsqueeze(0))
-                dur_steps = max(1, int(duration.item() * self.max_duration_scale))
-                for _ in range(dur_steps):
-                    next_obs, reward, done = self.env.step(a_phys.squeeze(0).cpu().numpy())
-                    episode_reward += reward
-                    step += 1
-                    if done:
-                        break
+                a_phys = self.action_decoder(a_prim.unsqueeze(0))
+                next_obs, reward, done = self.env.step(a_phys.squeeze(0).cpu().numpy())
+                episode_reward += reward
+                step += 1
 
                 # 编码下一状态
                 proprio, sensor, vision = self._parse_obs(next_obs)
@@ -433,11 +453,15 @@ class Stage3Trainer:
                 gia_loss = self.update_gia_self_supervised(self.config.batch_size)
                 print(f"Ep {ep}, GIA self-loss: {gia_loss.get('gia_self_loss', 0):.4f}")
 
-            # 保存模型
+            # 保存模型（含 inference.py 需要的全部网络）
             if ep % self.config.save_freq == 0:
                 save_dir = Path(self.config.save_dir)
-                save_dir.mkdir(exist_ok=True)
+                save_dir.mkdir(parents=True, exist_ok=True)
                 torch.save({
+                    'state_encoder': self.state_encoder.state_dict(),
+                    'goal_encoder': self.goal_encoder.state_dict(),
+                    'subgoal_encoder': self.subgoal_encoder.state_dict(),
+                    'action_decoder': self.action_decoder.state_dict(),
                     'low_actor': self.low_actor.state_dict(),
                     'high_actor': self.high_actor.state_dict(),
                     'gia': self.gia.state_dict(),

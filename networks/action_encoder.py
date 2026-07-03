@@ -1,15 +1,21 @@
 import torch
 import torch.nn as nn
+from .utils.weight_init import weight_init
 
 class ActionEncoder(nn.Module):
-    def __init__(self, action_dim=8, duration_dim=1, hidden_dim=64, prim_dim=10):
+    def __init__(self, proprio_dim=68, action_dim=29, hidden_dim=64, prim_dim=10):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(action_dim + duration_dim, hidden_dim),
+            nn.Linear(proprio_dim + action_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, prim_dim)
+            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden_dim),
+            nn.Linear(hidden_dim, prim_dim),
+            nn.Tanh()
         )
+        self.apply(weight_init)
 
-    def forward(self, action, duration):
-        a_prim = self.net(torch.cat([action, duration], dim=-1))
-        return a_prim
+    def forward(self, proprio, action):
+        return self.net(torch.cat([proprio, action], dim=-1))

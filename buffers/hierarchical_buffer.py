@@ -5,6 +5,8 @@ import torch
 
 class HierarchicalReplayBuffer:
     def __init__(self, high_capacity=100000, low_capacity=100000):
+        self.high_capacity = high_capacity
+        self.low_capacity = low_capacity
         self.high_buffer = deque(maxlen=high_capacity)
         self.low_buffer = deque(maxlen=low_capacity)
 
@@ -16,9 +18,29 @@ class HierarchicalReplayBuffer:
 
     def sample_low(self, batch_size):
         batch = random.sample(self.low_buffer, batch_size)
-        obs, g, a_phys, r, obs_next, done = map(np.stack, zip(*batch))
-        return (torch.FloatTensor(obs), torch.FloatTensor(g), torch.FloatTensor(a_phys),
-                torch.FloatTensor(r), torch.FloatTensor(obs_next), torch.FloatTensor(done))
+        # batch元素可能是 (proprio,sensor,vision) 元组，也可能是平坦向量
+        raw_obs, g, a_phys, r, raw_obs_next, done = zip(*batch)
+        if isinstance(raw_obs[0], tuple):
+            proprio, sensor, vision = zip(*raw_obs)
+            proprio = torch.FloatTensor(np.stack(proprio))
+            sensor = torch.FloatTensor(np.stack(sensor))
+            vision = torch.FloatTensor(np.stack(vision))
+            obs = (proprio, sensor, vision)
+            proprio_n, sensor_n, vision_n = zip(*raw_obs_next)
+            obs_next = (torch.FloatTensor(np.stack(proprio_n)),
+                        torch.FloatTensor(np.stack(sensor_n)),
+                        torch.FloatTensor(np.stack(vision_n)))
+        else:
+            obs = torch.FloatTensor(np.stack(raw_obs))
+            obs_next = torch.FloatTensor(np.stack(raw_obs_next))
+        r_flat = torch.FloatTensor(np.stack(r))
+        done_flat = torch.FloatTensor(np.stack(done))
+        if r_flat.dim() > 1:
+            r_flat = r_flat.squeeze(-1)
+        if done_flat.dim() > 1:
+            done_flat = done_flat.squeeze(-1)
+        return (obs, torch.FloatTensor(np.stack(g)), torch.FloatTensor(np.stack(a_phys)),
+                r_flat, obs_next, done_flat)
 
     def sample_high(self, batch_size):
         batch = random.sample(self.high_buffer, batch_size)
@@ -38,4 +60,4 @@ class HierarchicalReplayBuffer:
         for (z, z_goal, g_old, sum_r, z_next, done, low_trans) in self.high_buffer:
             g_new = z_next - z
             new_high_buffer.append((z, z_goal, g_new, sum_r, z_next, done, low_trans))
-        self.high_buffer = deque(new_high_buffer, maxlen=self.capacity)
+        self.high_buffer = deque(new_high_buffer, maxlen=self.high_capacity)

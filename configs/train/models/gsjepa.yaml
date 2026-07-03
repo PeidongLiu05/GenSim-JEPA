@@ -1,1 +1,75 @@
-_target_:
+# GenSim-JEPA 训练配置（AzureLoong 人形机器人行走任务）
+device: cuda
+
+# ==================== 分层控制开关 ====================
+use_hierarchy: false   # false = 仅使用低层 SAC 策略，禁用高层/GIA/TerminationCritic
+
+# ==================== 观测与动作维度 ====================
+# G1 人形机器人 29 关节: proprio_dim = 10 + 2*29 = 68
+proprio_dim: 68
+sensor_dim: 38
+action_dim: 29         # ActionDecoder 输出的物理动作维度（29 = G1 全部可动关节）
+prim_dim: 10           # 低层策略输出的隐动作维度
+latent_dim: 128        # 隐状态编码维度
+subgoal_dim: 128
+goal_dim: 128
+
+# ==================== 视觉观测 ====================
+vision_c: 3
+vision_h: 64
+vision_w: 64
+
+# ==================== 学习率 ====================
+lr_encoder: 0.0003
+lr_decoder: 0.0003
+lr_low: 0.0003
+lr_high: 0.0003
+lr_alpha: 0.0003
+lr_aux: 0.0003
+lr_term: 0.0003
+lr_gia: 0.0003
+lr_lewm: 0.0003
+
+# ==================== RL 超参数 ====================
+gamma: 0.99
+tau: 0.005
+high_level_freq: 10             # 高层决策频率（每 k 步低层动作重新规划）
+batch_size: 256
+high_batch_size: 128
+policy_delay: 2                 # TD3 延迟策略更新
+actor_noise: 0.2                # TD3 目标策略噪声（与 cross_embodiment_transfer 一致）
+noise_clip: 0.5                 # 噪声裁剪
+max_actions: 1.0                # 动作裁剪边界 (tanh 输出范围)
+target_entropy: -29             # SAC 目标熵（≈ -action_dim）
+
+# ==================== 奖励权重 ====================
+lambda_recon: 0.1               # 状态重构损失权重（阶段一）
+lambda_dyn: 1.0                 # 前向动态损失权重（阶段一）
+lambda_cycle: 1.0               # 动作循环一致性损失权重（阶段一）
+lambda_sigreg: 0.01             # SIGReg 正则化权重（阶段二）
+lambda_wm: 0.5                  # 世界模型内在奖励权重（阶段三）
+
+# ==================== 调度器 / GIA 参数 ====================
+term_threshold: 0.5             # 子目标终止概率阈值
+term_progress_ratio: 0.5        # 终止判定期望进展比例
+epsilon_term: 0.2               # ε-greedy 随机终止概率（阶段一探索）
+epsilon_goal_update: 0.05       # ε-greedy 随机目标更新概率（阶段一探索）
+gia_threshold: 0.5              # GIA 更新目标阈值
+gia_dist_threshold: 0.5         # GIA 距离标签阈值（阶段一预训练）
+gia_rollout_horizon: 5          # GIA 自监督 rollout 步数（阶段三）
+stagnation_window: 10           # GIA 停滞检测窗口长度（推理）
+
+# ==================== 训练配置 ====================
+relabel_freq: 1                 # HIRO 子目标重标定频率（每 n 个 episode）
+gia_train_freq: 10              # GIA 训练频率（每 n 个 episode）
+save_freq: 1000                   # 模型保存频率
+save_dir: ./checkpoints
+
+# 阶段一训练参数
+stage1_episodes: 50000
+
+# 阶段二训练参数
+stage2_epochs: 2000
+
+# 阶段三训练参数
+stage3_episodes: 100000
